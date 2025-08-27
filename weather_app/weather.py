@@ -4,23 +4,27 @@ from streamlit_folium import st_folium
 import folium
 from folium.plugins import LocateControl
 
+#loading key adn url
 API_KEY = "b058c3260c006d722c4e8c2e968fd304"
 BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
 
-
+#making a function
 def get_weather(city=None, lat=None, lon=None):
-    if not city and (lat is None or lon is None):
+    if not city and (lat is None or lon is None): #checking for user input
         return {"error": "No location provided"}
     try:
+        #importing inputs
         if city:
             params = {"q": city, "appid": API_KEY, "units": "metric"}
         else:  # use coordinates
             params = {"lat": lat, "lon": lon, "appid": API_KEY, "units": "metric"}
-
+        #sending request
         response = requests.get(BASE_URL, params=params)
         response.raise_for_status()
+        #getting response
         data = response.json()
 
+        #loading data
         weather = data["weather"][0]["description"].capitalize()
         temp = data["main"]["temp"]
         feels_like = data["main"]["feels_like"]
@@ -34,13 +38,14 @@ def get_weather(city=None, lat=None, lon=None):
             "feels_like": feels_like,
             "humidity": humidity,
         }
+        #errors
     except requests.exceptions.HTTPError:
         return {"error": "City not found. Please try again."}
     except Exception as e:
         return {"error": str(e)}
 
 
-# Background
+# Background with css
 st.markdown(
     """
     <style>
@@ -54,6 +59,8 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+#streamlit interface:
 
 st.title("🌦️ Simple Weather App")
 
@@ -87,4 +94,5 @@ if result:
         st.subheader(f"Weather in {result['city']}")
         st.write(f"**Condition:** {result['weather']}")
         st.write(f"**Temperature:** {result['temp']}°C (feels like {result['feels_like']}°C)")
+
         st.write(f"**Humidity:** {result['humidity']}%")
